@@ -1,7 +1,7 @@
 package com.skr.game.core
 fun main() {
     var failed = 0
-    fun eq<T>(a: T, b: T, msg: String) { if (a != b) { println("FAIL: $msg (got $a, expected $b)"); failed++ } }
+    fun <T> eq(a: T, b: T, msg: String) { if (a != b) { println("FAIL: $msg (got $a, expected $b)"); failed++ } }
     // resolveRound
     eq(GameEngine.resolveRound(Move.ROCK, Move.SCISSORS), RoundResult.PLAYER_A_WINS, "Rock beats Scissors")
     eq(GameEngine.resolveRound(Move.PAPER, Move.ROCK), RoundResult.PLAYER_A_WINS, "Paper beats Rock")

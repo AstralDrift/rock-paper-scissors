@@ -26,11 +26,19 @@ object GameEngine {
         var scoreA = 0
         var scoreB = 0
         var pot = initialPot
-        for ((moveA, moveB) in rounds) {
-            when (val r = resolveRound(moveA, moveB)) {
+        loop@ for (round in rounds) {
+            val moveA = round.first
+            val moveB = round.second
+            when (resolveRound(moveA, moveB)) {
                 RoundResult.DRAW -> pot = potAfterDraw(pot)
-                RoundResult.PLAYER_A_WINS -> { scoreA++; if (isMatchOver(scoreA, scoreB)) break }
-                RoundResult.PLAYER_B_WINS -> { scoreB++; if (isMatchOver(scoreA, scoreB)) break }
+                RoundResult.PLAYER_A_WINS -> {
+                    scoreA++
+                    if (isMatchOver(scoreA, scoreB)) break@loop
+                }
+                RoundResult.PLAYER_B_WINS -> {
+                    scoreB++
+                    if (isMatchOver(scoreA, scoreB)) break@loop
+                }
             }
         }
         val winner = when {

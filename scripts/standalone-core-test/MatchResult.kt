@@ -4,5 +4,5 @@ data class MatchResult(
     val scoreB: Int,
     val finalPot: Double,
     val winner: RoundResult?,
-    val winnerPayout: Double?,
+    val winnerPayout: Double?
 )
