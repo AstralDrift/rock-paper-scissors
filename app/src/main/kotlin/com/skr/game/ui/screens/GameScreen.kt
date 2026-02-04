@@ -1,5 +1,8 @@
 package com.skr.game.ui.screens
 
+import com.skr.game.core.GameEngine
+import com.skr.game.core.Move
+import com.skr.game.core.RoundResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,14 +29,50 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun GameScreen(
+    entryStake: Int,
     onBack: () -> Unit,
     onMatchEnd: () -> Unit,
 ) {
-    var moveSelected by remember { mutableStateOf<String?>(null) }
+    val initialPot = GameEngine.potForStake(entryStake).toDouble()
+    var roundNumber by remember { mutableStateOf(1) }
+    var scorePlayer by remember { mutableStateOf(0) }
+    var scoreOpponent by remember { mutableStateOf(0) }
+    var currentPot by remember { mutableStateOf(initialPot) }
+    var lastRoundResult by remember { mutableStateOf<RoundResult?>(null) }
+    var lastPlayerMove by remember { mutableStateOf<Move?>(null) }
+    var lastOpponentMove by remember { mutableStateOf<Move?>(null) }
+    var matchOver by remember { mutableStateOf(false) }
+    var winner by remember { mutableStateOf<RoundResult?>(null) }
+    var winnerPayout by remember { mutableStateOf<Double?>(null) }
+
+    fun playRound(playerMove: Move) {
+        val opponentMove = Move.entries.random()
+        val result = GameEngine.resolveRound(playerMove, opponentMove)
+        when (result) {
+            RoundResult.DRAW -> currentPot = GameEngine.potAfterDraw(currentPot)
+            RoundResult.PLAYER_A_WINS -> scorePlayer++
+            RoundResult.PLAYER_B_WINS -> scoreOpponent++
+        }
+        lastRoundResult = result
+        lastPlayerMove = playerMove
+        lastOpponentMove = opponentMove
+        if (GameEngine.isMatchOver(scorePlayer, scoreOpponent)) {
+            matchOver = true
+            winner = result
+            winnerPayout = GameEngine.winnerPayout(currentPot)
+        } else {
+            roundNumber++
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Round 1") },
+                title = {
+                    Text(
+                        if (matchOver) "Match over" else "Round $roundNumber",
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         ArrowBack(contentDescription = "Back")
@@ -49,42 +88,78 @@ fun GameScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Select your move",
+                text = "You $scorePlayer – $scoreOpponent Opponent",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Your move is hidden until your opponent has chosen.",
-                style = MaterialTheme.typography.bodySmall,
+                text = "Pot: ${currentPot.toInt()} SKR",
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                listOf("Rock", "Paper", "Scissors").forEach { move ->
-                    val selected = moveSelected == move
-                    if (selected) {
-                        Button(onClick = { moveSelected = move }) {
-                            Text(move)
-                        }
-                    } else {
-                        OutlinedButton(onClick = { moveSelected = move }) {
-                            Text(move)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (matchOver) {
+                val won = winner == RoundResult.PLAYER_A_WINS
+                Text(
+                    text = if (won) "You win!" else "You lose!",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (won)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.error,
+                )
+                if (won) {
+                    winnerPayout?.let { payout ->
+                        Text(
+                            text = "You get ${"%.2f".format(payout)} SKR",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = onMatchEnd) {
+                    Text("End match")
+                }
+            } else {
+                lastRoundResult?.let { result ->
+                    lastPlayerMove?.let { pm ->
+                        lastOpponentMove?.let { om ->
+                            Text(
+                                text = "You played ${pm.name.lowercase()}, opponent played ${om.name.lowercase()}.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = when (result) {
+                                    RoundResult.PLAYER_A_WINS -> "You win this round."
+                                    RoundResult.PLAYER_B_WINS -> "Opponent wins this round."
+                                    RoundResult.DRAW -> "Draw. Pot reduced 1%."
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
-            }
-            Spacer(modifier = Modifier.height(48.dp))
-            Text(
-                text = "Match and round resolution will be wired to backend + commit-reveal.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(onClick = onMatchEnd) {
-                Text("End match (placeholder)")
+                Text(
+                    text = "Select your move",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    Move.entries.forEach { move ->
+                        OutlinedButton(onClick = { playRound(move) }) {
+                            Text(move.name.lowercase().replaceFirstChar { it.uppercase() })
+                        }
+                    }
+                }
             }
         }
     }
