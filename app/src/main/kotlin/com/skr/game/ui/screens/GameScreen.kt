@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 fun GameScreen(
     entryStake: Int,
     onBack: () -> Unit,
-    onMatchEnd: () -> Unit,
+    onMatchEnd: (won: Boolean) -> Unit,
 ) {
     val initialPot = GameEngine.potForStake(entryStake).toDouble()
     var roundNumber by remember { mutableStateOf(1) }
@@ -119,7 +119,7 @@ fun GameScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
-                Button(onClick = onMatchEnd) {
+                Button(onClick = { onMatchEnd(winner == RoundResult.PLAYER_A_WINS) }) {
                     Text("End match")
                 }
             } else {

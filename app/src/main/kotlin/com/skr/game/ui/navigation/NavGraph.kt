@@ -1,10 +1,13 @@
 package com.skr.game.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.skr.game.data.ProgressionRepository
 import com.skr.game.ui.screens.GameScreen
 import com.skr.game.ui.screens.HomeScreen
 import com.skr.game.ui.screens.ProfileScreen
@@ -51,11 +54,17 @@ fun SKRNavGraph(
             GameScreen(
                 entryStake = entryStake,
                 onBack = { navController.popBackStack() },
-                onMatchEnd = { navController.popBackStack(Routes.HOME, inclusive = false) },
+                onMatchEnd = { won ->
+                    progressionRepo.addMatchResult(won)
+                    navController.popBackStack(Routes.HOME, inclusive = false)
+                },
             )
         }
         composable(Routes.PROFILE) {
-            ProfileScreen(onBack = { navController.popBackStack() })
+            ProfileScreen(
+                progressionRepo = progressionRepo,
+                onBack = { navController.popBackStack() },
+            )
         }
     }
 }
