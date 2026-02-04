@@ -10,7 +10,7 @@ Mobile Android game: RPS-style matches with SKR token stakes, async play, and co
 
 ## How to run and test (including from Cursor, no Android Studio)
 
-All build and test steps can be run from the Cursor terminal. You need **Docker** (for a Java 17 + Android SDK environment, since the host may have Java 25 which Gradle/Kotlin don’t support yet).
+All build and test steps can be run from the Cursor terminal. You need **Docker** (for a Java 17 + Android SDK environment, since the host may have Java 25 which Gradle/Kotlin don’t support yet). **Before committing:** run at least the standalone or full core tests so only clean, tested code is committed.
 
 1. **Run core game logic tests (recommended first step)**  
    From the project root:
