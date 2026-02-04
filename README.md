@@ -50,12 +50,12 @@ All build and test steps can be run from the Cursor terminal. You need **Docker*
 - **Home**: Play, Rules, Profile.
 - **Rules**: In-app rules text from game design (payouts, async, stakes, progression).
 - **Stake**: Pick tier (5 / 20 / 100 / 500 SKR); “Find match” navigates to Game with that stake.
-- **Game**: Full local match: round number, score, pot; you pick a move, opponent is simulated; round and match result (you win/lose, payout). “End match” returns to Home. Backend/commit-reveal not added yet.
-- **Profile**: Placeholder for level, collection, crates.
+- **Game**: Full local match: round number, score, pot; you pick a move, opponent is simulated; round and match result (you win/lose, payout). “End match” records result for progression (XP, crates) and returns to Home.
+- **Profile**: Level, XP bar, games played, crates (1 per 3 games). Open crate for random collectible or dust. Collection: unlocked avatars, move skins, titles, badges (45 total).
 
 ## Next steps (out of scope of current scaffold)
 
 - Backend or Solana program: matchmaking, round state, commit-reveal moves, payouts.
 - SKR token integration (wallet, stake, receive winnings).
 - Real matchmaking and round resolution.
-- Level/XP, loot crates, cosmetics (see game-design.md for the list).
+- Daily quests, streaks, shop (dust); backend/commit-reveal for real play.
