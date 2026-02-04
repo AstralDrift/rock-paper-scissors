@@ -1,30 +1,57 @@
 #!/usr/bin/env bash
-# Run build and tests from Cursor (no Android Studio).
-# Uses Docker with Java 17 + Android SDK so full Gradle build works.
+# Run core unit tests. Prefers local Gradle; falls back to Docker (no Android SDK needed).
 set -e
 cd "$(dirname "$0")/.."
 PROJECT_ROOT="$PWD"
-IMAGE="${ANDROID_BUILD_IMAGE:-mobiledevops/android-sdk-image:34.0.0}"
+CORE_ONLY_SETTINGS="settings-core-only.gradle.kts"
+TEST_CMD=":core:test --no-daemon --no-configuration-cache"
+TIMEOUT_SEC="${TEST_TIMEOUT_SEC:-300}"
 
-# Ensure we have Gradle wrapper (generated once inside Docker)
-if [[ ! -f ./gradlew ]]; then
-  echo "Generating Gradle wrapper (requires Docker)..."
-  docker run --rm \
+# Exit code from run_local: 0 = success, 1 = ran but failed, 2 = could not run (try Docker).
+run_local() {
+  if [[ -x "./gradlew" ]]; then
+    echo "Running :core:test locally (./gradlew with $CORE_ONLY_SETTINGS)..."
+    set +e
+    ./gradlew -c "$CORE_ONLY_SETTINGS" $TEST_CMD
+    local r=$?
+    set -e
+    return $r
+  fi
+  if command -v gradle >/dev/null 2>&1; then
+    echo "Generating Gradle wrapper..."
+    gradle wrapper --gradle-version=8.9 --no-daemon
+    chmod +x ./gradlew
+    echo "Running :core:test locally..."
+    set +e
+    ./gradlew -c "$CORE_ONLY_SETTINGS" $TEST_CMD
+    local r=$?
+    set -e
+    return $r
+  fi
+  return 2
+}
+
+run_docker() {
+  echo "No local Gradle wrapper or gradle found. Using Docker (Java 17 + Gradle, no Android SDK)..."
+  IMAGE="${ANDROID_BUILD_IMAGE:-gradle:8.9-jdk17}"
+  echo "Image: $IMAGE (override with ANDROID_BUILD_IMAGE)"
+  timeout "$TIMEOUT_SEC" docker run --rm \
     -v "$PROJECT_ROOT:/app" \
     -w /app \
     -e GRADLE_USER_HOME=/app/.gradle \
     "$IMAGE" \
-    bash -c 'gradle wrapper --gradle-version=8.9 --no-daemon 2>/dev/null || (apt-get update -qq && apt-get install -y -qq unzip curl > /dev/null && curl -sL -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.9-bin.zip && unzip -q -o /tmp/gradle.zip -d /tmp && /tmp/gradle-8.9/bin/gradle wrapper --gradle-version=8.9 --no-daemon)'
-  chmod +x ./gradlew
-  echo "Wrapper created."
-fi
+    bash -c "gradle -c $CORE_ONLY_SETTINGS $TEST_CMD" || {
+      e=$?
+      if [[ $e -eq 124 ]]; then
+        echo "Tests timed out after ${TIMEOUT_SEC}s. Increase with TEST_TIMEOUT_SEC or run locally with ./gradlew."
+        exit 124
+      fi
+      exit $e
+    }
+}
 
-# Run core module unit tests
-echo "Running :core:test..."
-docker run --rm \
-  -v "$PROJECT_ROOT:/app" \
-  -w /app \
-  -e GRADLE_USER_HOME=/app/.gradle \
-  -e ANDROID_HOME=/opt/android-sdk \
-  "$IMAGE" \
-  ./gradlew :core:test --no-daemon --no-configuration-cache
+run_local
+r=$?
+if [[ $r -eq 0 ]]; then exit 0; fi
+if [[ $r -eq 2 ]]; then run_docker; fi
+exit $r
