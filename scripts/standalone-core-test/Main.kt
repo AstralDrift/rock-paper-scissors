@@ -15,5 +15,12 @@ fun main() {
     eq(GameEngine.isMatchOver(1, 1), false, "match not over 1-1")
     eq(GameEngine.stakeTiers(), listOf(5, 20, 100, 500), "stakeTiers")
     eq(GameEngine.potForStake(5), 10, "potForStake 5")
+    // runMatch
+    val r1 = GameEngine.runMatch(20.0, listOf(Move.ROCK to Move.SCISSORS, Move.PAPER to Move.ROCK))
+    eq(r1.scoreA, 2, "runMatch 2-0 scoreA"); eq(r1.scoreB, 0, "runMatch 2-0 scoreB")
+    eq(r1.winner, RoundResult.PLAYER_A_WINS, "runMatch 2-0 winner"); eq(r1.winnerPayout, 18.0, "runMatch 2-0 payout")
+    val r2 = GameEngine.runMatch(20.0, listOf(Move.SCISSORS to Move.ROCK, Move.PAPER to Move.SCISSORS))
+    eq(r2.scoreA, 0, "runMatch B 2-0 scoreA"); eq(r2.scoreB, 2, "runMatch B 2-0 scoreB")
+    eq(r2.winner, RoundResult.PLAYER_B_WINS, "runMatch B 2-0 winner")
     if (failed == 0) println("All checks passed.") else error("$failed check(s) failed")
 }

@@ -60,4 +60,35 @@ object GameEngine {
      * Pot for a given stake tier (2 * entry).
      */
     fun potForStake(entryPerPlayer: Int): Int = entryPerPlayer * 2
+
+    /**
+     * Runs a match given an initial pot and a list of rounds (player A move, player B move).
+     * Uses [resolveRound], updates scores and pot ([potAfterDraw] on draws).
+     * Stops when [isMatchOver]; [MatchResult.winner] and [MatchResult.winnerPayout] are set when the match ends.
+     */
+    fun runMatch(initialPot: Double, rounds: List<Pair<Move, Move>>): MatchResult {
+        var scoreA = 0
+        var scoreB = 0
+        var pot = initialPot
+        for ((moveA, moveB) in rounds) {
+            when (val r = resolveRound(moveA, moveB)) {
+                RoundResult.DRAW -> pot = potAfterDraw(pot)
+                RoundResult.PLAYER_A_WINS -> {
+                    scoreA++
+                    if (isMatchOver(scoreA, scoreB)) break
+                }
+                RoundResult.PLAYER_B_WINS -> {
+                    scoreB++
+                    if (isMatchOver(scoreA, scoreB)) break
+                }
+            }
+        }
+        val winner = when {
+            scoreA >= ROUNDS_TO_WIN_MATCH -> RoundResult.PLAYER_A_WINS
+            scoreB >= ROUNDS_TO_WIN_MATCH -> RoundResult.PLAYER_B_WINS
+            else -> null
+        }
+        val payout = winner?.let { winnerPayout(pot) }
+        return MatchResult(scoreA, scoreB, pot, winner, payout)
+    }
 }

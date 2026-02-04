@@ -8,4 +8,4 @@ docker run --rm \
   -v "$STANDALONE:/src:ro" \
   -w /src \
   eclipse-temurin:17-jdk \
-  bash -c 'apt-get update -qq && apt-get install -y -qq kotlin 2>/dev/null; kotlinc -include-runtime -d out.jar Move.kt RoundResult.kt GameEngine.kt Main.kt && java -jar out.jar'
+  bash -c 'apt-get update -qq && apt-get install -y -qq kotlin 2>/dev/null; kotlinc -include-runtime -d out.jar Move.kt RoundResult.kt MatchResult.kt GameEngine.kt Main.kt && java -jar out.jar'

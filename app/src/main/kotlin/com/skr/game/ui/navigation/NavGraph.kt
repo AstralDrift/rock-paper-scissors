@@ -16,7 +16,10 @@ object Routes {
     const val RULES = "rules"
     const val STAKE = "stake"
     const val GAME = "game"
+    const val GAME_WITH_STAKE = "game/{entryStake}"
     const val PROFILE = "profile"
+
+    fun gameWithStake(entryStake: Int) = "game/$entryStake"
 }
 
 @Composable
@@ -40,11 +43,13 @@ fun SKRNavGraph(
         composable(Routes.STAKE) {
             StakeScreen(
                 onBack = { navController.popBackStack() },
-                onMatchmaking = { navController.navigate(Routes.GAME) },
+                onMatchmaking = { stake -> navController.navigate(Routes.gameWithStake(stake)) },
             )
         }
-        composable(Routes.GAME) {
+        composable(Routes.GAME_WITH_STAKE) {
+            val entryStake = it.arguments?.getString("entryStake")?.toIntOrNull() ?: 5
             GameScreen(
+                entryStake = entryStake,
                 onBack = { navController.popBackStack() },
                 onMatchEnd = { navController.popBackStack(Routes.HOME, inclusive = false) },
             )

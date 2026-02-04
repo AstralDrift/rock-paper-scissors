@@ -55,4 +55,63 @@ class GameEngineTest {
         assertEquals(10, GameEngine.potForStake(5))
         assertEquals(1000, GameEngine.potForStake(500))
     }
+
+    @Test
+    fun `runMatch win 2-0`() {
+        val rounds = listOf(
+            Move.ROCK to Move.SCISSORS,
+            Move.PAPER to Move.ROCK,
+        )
+        val result = GameEngine.runMatch(20.0, rounds)
+        assertEquals(2, result.scoreA)
+        assertEquals(0, result.scoreB)
+        assertEquals(20.0, result.finalPot)
+        assertEquals(RoundResult.PLAYER_A_WINS, result.winner)
+        assertEquals(18.0, result.winnerPayout)
+    }
+
+    @Test
+    fun `runMatch win 2-1 with one draw`() {
+        val rounds = listOf(
+            Move.ROCK to Move.ROCK,
+            Move.ROCK to Move.SCISSORS,
+            Move.PAPER to Move.ROCK,
+        )
+        val result = GameEngine.runMatch(20.0, rounds)
+        assertEquals(2, result.scoreA)
+        assertEquals(0, result.scoreB)
+        assertEquals(19.80, result.finalPot)
+        assertEquals(RoundResult.PLAYER_A_WINS, result.winner)
+        assertEquals(17.82, result.winnerPayout)
+    }
+
+    @Test
+    fun `runMatch two draws then win`() {
+        val rounds = listOf(
+            Move.ROCK to Move.ROCK,
+            Move.PAPER to Move.PAPER,
+            Move.ROCK to Move.SCISSORS,
+            Move.PAPER to Move.ROCK,
+        )
+        val result = GameEngine.runMatch(20.0, rounds)
+        assertEquals(2, result.scoreA)
+        assertEquals(0, result.scoreB)
+        assertEquals(19.60, result.finalPot)
+        assertEquals(RoundResult.PLAYER_A_WINS, result.winner)
+        assertEquals(17.64, result.winnerPayout)
+    }
+
+    @Test
+    fun `runMatch player B wins 2-0`() {
+        val rounds = listOf(
+            Move.SCISSORS to Move.ROCK,
+            Move.PAPER to Move.SCISSORS,
+        )
+        val result = GameEngine.runMatch(20.0, rounds)
+        assertEquals(0, result.scoreA)
+        assertEquals(2, result.scoreB)
+        assertEquals(20.0, result.finalPot)
+        assertEquals(RoundResult.PLAYER_B_WINS, result.winner)
+        assertEquals(18.0, result.winnerPayout)
+    }
 }

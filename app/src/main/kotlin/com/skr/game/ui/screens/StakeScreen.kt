@@ -35,7 +35,7 @@ private val STAKE_TIERS = listOf(
 @Composable
 fun StakeScreen(
     onBack: () -> Unit,
-    onMatchmaking: () -> Unit,
+    onMatchmaking: (Int) -> Unit,
 ) {
     var selectedStake by remember { mutableStateOf(5) }
     Scaffold(
@@ -98,7 +98,7 @@ fun StakeScreen(
             }
             Spacer(modifier = Modifier.height(24.dp))
             OutlinedButton(
-                onClick = onMatchmaking,
+                onClick = { onMatchmaking(selectedStake) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Find match (${selectedStake} SKR)")

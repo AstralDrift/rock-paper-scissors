@@ -22,7 +22,7 @@ All build and test steps can be run from the Cursor terminal. You need **Docker*
    - The **core** module is pure Kotlin (RPS rules, pot math, match state) and is tested without launching the app.
 
 2. **Quick game-logic check (no Android SDK)**  
-   Smaller Docker image, but installs Kotlin in the container on first run:
+   Smaller Docker image (eclipse-temurin:17-jdk); installs Kotlin in the container on first run. Covers `GameEngine` (resolve round, pot, stakes, `runMatch`):
    ```bash
    ./scripts/run-standalone-test.sh
    ```
@@ -42,15 +42,15 @@ All build and test steps can be run from the Cursor terminal. You need **Docker*
 
 ## Project layout
 
-- **core/** – Pure Kotlin game logic (no Android): `Move`, `RoundResult`, `GameEngine` (resolve round, pot math, stake tiers). Unit tests in `core/src/test/`.
+- **core/** – Pure Kotlin game logic (no Android): `Move`, `RoundResult`, `MatchResult`, `GameEngine` (resolve round, pot math, stake tiers, `runMatch` for full best-of-3). Unit tests in `core/src/test/`.
 - **app/** – Android app (Compose UI, navigation). Depends on `core`.
 
 ## App structure
 
 - **Home**: Play, Rules, Profile.
 - **Rules**: In-app rules text from game design (payouts, async, stakes, progression).
-- **Stake**: Pick tier (5 / 20 / 100 / 500 SKR); “Find match” goes to Game (matchmaking not wired yet).
-- **Game**: Placeholder round UI (Rock / Paper / Scissors); backend + commit-reveal to be added.
+- **Stake**: Pick tier (5 / 20 / 100 / 500 SKR); “Find match” navigates to Game with that stake.
+- **Game**: Full local match: round number, score, pot; you pick a move, opponent is simulated; round and match result (you win/lose, payout). “End match” returns to Home. Backend/commit-reveal not added yet.
 - **Profile**: Placeholder for level, collection, crates.
 
 ## Next steps (out of scope of current scaffold)

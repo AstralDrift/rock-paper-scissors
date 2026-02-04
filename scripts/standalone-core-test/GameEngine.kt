@@ -22,4 +22,23 @@ object GameEngine {
     fun isMatchOver(scoreA: Int, scoreB: Int): Boolean = scoreA >= ROUNDS_TO_WIN_MATCH || scoreB >= ROUNDS_TO_WIN_MATCH
     fun stakeTiers(): List<Int> = listOf(5, 20, 100, 500)
     fun potForStake(entryPerPlayer: Int): Int = entryPerPlayer * 2
+    fun runMatch(initialPot: Double, rounds: List<Pair<Move, Move>>): MatchResult {
+        var scoreA = 0
+        var scoreB = 0
+        var pot = initialPot
+        for ((moveA, moveB) in rounds) {
+            when (val r = resolveRound(moveA, moveB)) {
+                RoundResult.DRAW -> pot = potAfterDraw(pot)
+                RoundResult.PLAYER_A_WINS -> { scoreA++; if (isMatchOver(scoreA, scoreB)) break }
+                RoundResult.PLAYER_B_WINS -> { scoreB++; if (isMatchOver(scoreA, scoreB)) break }
+            }
+        }
+        val winner = when {
+            scoreA >= ROUNDS_TO_WIN_MATCH -> RoundResult.PLAYER_A_WINS
+            scoreB >= ROUNDS_TO_WIN_MATCH -> RoundResult.PLAYER_B_WINS
+            else -> null
+        }
+        val payout = winner?.let { winnerPayout(pot) }
+        return MatchResult(scoreA, scoreB, pot, winner, payout)
+    }
 }
