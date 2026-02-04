@@ -29,6 +29,8 @@ object Routes {
 fun SKRNavGraph(
     navController: NavHostController = rememberNavController(),
 ) {
+    val context = LocalContext.current
+    val progressionRepo = remember { ProgressionRepository(context) }
     NavHost(
         navController = navController,
         startDestination = Routes.HOME,
